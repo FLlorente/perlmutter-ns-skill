@@ -1,0 +1,6 @@
+my_env_vars
+runs/
+test_venv/
+.DS_Store
+__pycache__/
+*.pyc
