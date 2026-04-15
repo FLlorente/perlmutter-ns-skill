@@ -1,0 +1,4 @@
+[submodule "Skills"]
+	path = Skills
+	url = https://github.com/ericchagnon15/nemo-skills-container-changes
+	branch = perlmutter_podman-hpc

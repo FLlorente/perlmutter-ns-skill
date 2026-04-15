@@ -20,13 +20,21 @@ A NERSC account with access to `pscratch` and permission to run `podman-hpc` on 
 
 ## Setup
 
-**1. Clone the Perlmutter-enabled NeMo-Skills fork**
+**1. Initialise the bundled NeMo-Skills submodule**
+
+The Perlmutter-enabled NeMo-Skills fork is included as a git submodule tracking the
+[`perlmutter_podman-hpc`](https://github.com/ericchagnon15/nemo-skills-container-changes/tree/perlmutter_podman-hpc) branch.
+After cloning this repo, run:
 
 ```bash
-git clone <your-fork-url> /path/to/Skills
+git submodule update --init
 ```
 
-The fork must contain `docs/basics/perlmutter.md` and podman-hpc support in `nemo_skills/pipeline/utils/cluster.py`. Point `NEMO_SKILLS_REPO_DIR` at this checkout.
+This checks out the fork into `Skills/`. Point `NEMO_SKILLS_REPO_DIR` at that directory (e.g. `$(pwd)/Skills`).
+
+> **Note:** The upstream fork may be a private repository. If `git submodule update --init`
+> fails with a 404 or authentication error, request access from the repository owner before
+> retrying.
 
 **2. Create your env file**
 
