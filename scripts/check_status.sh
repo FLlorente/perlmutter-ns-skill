@@ -10,6 +10,7 @@ usage() {
 Usage: check_status.sh --manifest <absolute-path> [--wait]
 
 Poll Slurm for the run expname, fall back to sacct, and only report success when output.jsonl.done exists.
+With --wait, exits with failure if the job does not complete within 2x DEFAULT_TIMEOUT.
 EOF
 }
 
@@ -44,6 +45,17 @@ env_file="$(json_get "${manifest}" env_file)"
 expname="$(json_get "${manifest}" expname)"
 remote_done_file="$(json_get "${manifest}" remote_done_file)"
 load_env_file "${env_file}"
+
+# Convert HH:MM:SS to seconds
+timeout_to_seconds() {
+  local t="$1"
+  local h m s
+  IFS=: read -r h m s <<<"${t}"
+  echo $(( 10#${h} * 3600 + 10#${m} * 60 + 10#${s} ))
+}
+
+max_wait_seconds=$(( $(timeout_to_seconds "${DEFAULT_TIMEOUT}") * 2 ))
+start_ts=$(date +%s)
 
 terminal_failure() {
   case "$1" in
@@ -96,6 +108,13 @@ while :; do
   if [[ "${wait_mode}" -eq 0 ]]; then
     note "${job_state:-NOT_FOUND} ${expname} ${job_id}"
     exit 0
+  fi
+
+  elapsed=$(( $(date +%s) - start_ts ))
+  note "Waiting: ${job_state:-UNKNOWN} ${expname} ${job_id:-} (elapsed: ${elapsed}s / max: ${max_wait_seconds}s)"
+
+  if [[ "${elapsed}" -ge "${max_wait_seconds}" ]]; then
+    die "Timed out after ${elapsed}s waiting for ${expname} to complete (max_wait=${max_wait_seconds}s)"
   fi
 
   sleep "${STATUS_POLL_INTERVAL}"

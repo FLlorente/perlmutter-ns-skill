@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1090
 source "{{ENV_FILE}}"
 
-cd "$SCRIPT_DIR"
+cd /tmp
 
 "{{NS_BIN}}" generate \
   --cluster=perlmutter \

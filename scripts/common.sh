@@ -47,10 +47,10 @@ run_artifact_root() {
 
   if [[ -n "${PERLMUTTER_AGENT_RUNS_DIR:-}" ]]; then
     candidate="${PERLMUTTER_AGENT_RUNS_DIR}"
-  elif [[ -w "$(bundle_root)" ]]; then
-    candidate="$(bundle_root)/runs"
   elif [[ -w "${PWD}" ]]; then
     candidate="${PWD}/.perlmutter-nemo-generate-runs"
+  elif [[ -w "$(bundle_root)" ]]; then
+    candidate="$(bundle_root)/runs"
   else
     candidate="${TMPDIR:-/tmp}/perlmutter-nemo-generate-runs"
   fi
