@@ -16,12 +16,17 @@ Do not use this skill for `ns eval`, sidecars, self-hosted vLLM, or multi-compon
 
 ## Install
 
-This folder is the distributable unit.
+Claude Code discovers skills placed under `~/.claude/skills/`. Clone this repo directly into that directory so the skill is auto-loaded:
 
-1. Copy this directory into `$CODEX_HOME/skills/perlmutter-nemo-generate`.
-2. Copy [env_vars.example](./env_vars.example) to a private absolute-path env file outside version control.
-3. Fill in the env file, especially `NEMO_SKILLS_REPO_DIR`, the private-key path in `SSH_LOGIN_IDENTITY`, NERSC account values, scratch paths, and image tag.
-4. Use the starter text in [user_prompt](./user_prompt) when invoking the skill manually.
+```bash
+git clone https://github.com/FLlorente/perlmutter-ns-skill.git ~/.claude/skills/perlmutter-nemo-generate
+```
+
+Then:
+
+1. Copy [env_vars.example](./env_vars.example) to a private absolute-path env file outside version control.
+2. Fill in the env file, especially `NEMO_SKILLS_REPO_DIR`, the private-key path in `SSH_LOGIN_IDENTITY`, NERSC account values, scratch paths, and image tag.
+3. Use the starter text in [user_prompt](./user_prompt) when invoking the skill.
 
 ## Local prerequisites
 
@@ -157,6 +162,7 @@ Use this starter prompt with the user:
 - Always keep `perlmutter.yaml` run-specific; do not edit shared checked-in templates in place.
 - Always mount the run-specific remote directory to `/workspace`.
 - Always submit from the repo pointed to by `NEMO_SKILLS_REPO_DIR` so NeMo-Run packages the correct code.
+- The `run.sh` template uses `cd /tmp` before invoking `ns generate`. Do not change this to `cd "$SCRIPT_DIR"`. NeMo-Skills' `get_packager()` checks the process CWD for a git repo; if the CWD is inside any git repo (including this skill's own repo), `GitArchivePackager` fires and fails on uncommitted run artifacts. Running from `/tmp` forces the safe `PatternPackager` path.
 - Preflight checks are mandatory on every run. Do not treat them as optional health checks.
 
 ## Final response

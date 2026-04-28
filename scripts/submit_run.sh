@@ -41,5 +41,12 @@ mkdir -p "$(dirname "${submission_log}")"
 
 bash "${run_script}" 2>&1 | tee "${submission_log}"
 
+slurm_job_id="$(grep -o 'slurm_tunnel://nemo_run/[0-9]*' "${submission_log}" | grep -o '[0-9]*$' || true)"
+
 update_manifest "${manifest}" submitted_at "\"$(now_utc)\"" status "\"submitted\"" submission_log "\"${submission_log}\"" expname "\"${expname}\""
-note "Submitted run ${expname}"
+if [[ -n "${slurm_job_id}" ]]; then
+  update_manifest "${manifest}" job_id "\"${slurm_job_id}\""
+  note "Submitted run ${expname} (job ${slurm_job_id})"
+else
+  note "Submitted run ${expname}"
+fi

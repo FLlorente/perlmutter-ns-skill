@@ -62,6 +62,15 @@ if [[ -n "${job_id}" ]]; then
   done <<< "${remote_logs}"
 fi
 
+input_local_path="$(json_get "${manifest}" input_local_path)"
+if [[ -f "${input_local_path}" && -f "${results_dir}/output.jsonl" ]]; then
+  input_count="$(wc -l < "${input_local_path}")"
+  output_count="$(wc -l < "${results_dir}/output.jsonl")"
+  if [[ "${output_count}" -lt "${input_count}" ]]; then
+    note "WARNING: output.jsonl has ${output_count} record(s) but input.jsonl has ${input_count}; generation may be incomplete"
+  fi
+fi
+
 update_manifest \
   "${manifest}" \
   fetched_at "\"$(now_utc)\"" \
