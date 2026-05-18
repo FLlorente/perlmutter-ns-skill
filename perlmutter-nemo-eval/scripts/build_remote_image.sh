@@ -1,0 +1,1 @@
+../../scripts/build_remote_image.sh

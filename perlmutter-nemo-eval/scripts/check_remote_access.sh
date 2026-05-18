@@ -1,0 +1,1 @@
+../../scripts/check_remote_access.sh
