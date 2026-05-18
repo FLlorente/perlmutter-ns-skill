@@ -1,1 +1,1 @@
-../../scripts/build_remote_image.sh
+../../perlmutter-nemo-generate/scripts/build_remote_image.sh

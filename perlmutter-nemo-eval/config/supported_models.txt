@@ -1,1 +1,1 @@
-../../config/supported_models.txt
+../../perlmutter-nemo-generate/config/supported_models.txt

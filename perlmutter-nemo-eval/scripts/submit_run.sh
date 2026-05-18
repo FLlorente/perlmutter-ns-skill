@@ -1,1 +1,1 @@
-../../scripts/submit_run.sh
+../../perlmutter-nemo-generate/scripts/submit_run.sh

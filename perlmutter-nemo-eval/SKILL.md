@@ -16,28 +16,6 @@ Use this skill for benchmark evaluation jobs only:
 Do not use this skill for `ns generate`, sidecars, self-hosted vLLM, or multi-component jobs.
 For raw generation use the sibling `perlmutter-nemo-generate` skill.
 
-## Install
-
-This skill lives inside the `perlmutter-nemo-generate` repo at `perlmutter-nemo-eval/`. After cloning that repo, symlink the eval skill into Claude Code's skills directory:
-
-```bash
-git clone https://github.com/FLlorente/perlmutter-ns-skill.git ~/.claude/skills/perlmutter-nemo-generate
-ln -s ~/.claude/skills/perlmutter-nemo-generate/perlmutter-nemo-eval \
-      ~/.claude/skills/perlmutter-nemo-eval
-```
-
-Then:
-
-1. Copy [env_vars.example](./env_vars.example) to a private absolute-path env file outside version control.
-2. Fill in the env file with the same core vars as the generate skill, plus `BENCHMARK`.
-3. Use the starter text in [user_prompt](./user_prompt) when invoking the skill.
-
-## Local prerequisites
-
-Same as the generate skill: `python3`, `ssh`, `scp`, `sshproxy`.
-
-The skill reuses the same managed virtualenv as the generate skill (keyed by repo path), so if you have run a generate job before, no extra install is needed.
-
 ## Inputs
 
 The user must provide:
@@ -79,10 +57,6 @@ Same as the generate skill — resolve from `NEMO_SKILLS_REPO_DIR`:
 - `<repo_dir>/nemo_skills/pipeline/robust_eval.py`
 - `<repo_dir>/ns-tests/quick_bench.sh`
 - `<repo_dir>/ns-tests/quick_robust.sh`
-
-## Initial prompt
-
-`Use the Perlmutter NeMo eval skill. My env vars file is <ABS_ENV_VARS>, and it already defines the endpoint, API keys, NERSC account details, SSH private-key path, NEMO_SKILLS_REPO_DIR, remote workspace defaults, and the target image tag. My benchmark is <BENCHMARK>, my model is <MODEL_NAME>, and my job type is <eval|robust_eval>. For robust_eval, my local prompt_set_config.yaml is <ABS_PROMPT_SET_CONFIG>. Validate the required local tools and repo path, create or reuse the managed isolated local virtualenv, verify sshproxy access, verify Perlmutter access, verify the podman image (build it if missing), render perlmutter.yaml and run.sh, stage any required config files, submit the eval job, monitor it until completion, fetch the results locally, and report the local results path and any logs. Do not print secrets.`
 
 ## Workflow
 

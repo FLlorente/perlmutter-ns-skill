@@ -1,14 +1,19 @@
-# perlmutter-nemo-generate
+# Perlmutter NeMo-Skills Claude Code Skills
 
-A Claude Code agent skill that runs [`ns generate`](https://github.com/NVIDIA/NeMo-Skills) on NERSC Perlmutter using an external OpenAI-compatible API endpoint. The agent handles the full lifecycle: SSH certificate, preflight checks, optional container image build, job submission, polling, and result retrieval.
+A collection of [Claude Code](https://claude.ai/code) agent skills for running [NeMo-Skills](https://github.com/NVIDIA/NeMo-Skills) jobs on NERSC Perlmutter against an external OpenAI-compatible API endpoint.
 
-## What it does
+Each skill handles the full lifecycle automatically: sshproxy MFA certificate, remote preflight checks, optional container image build, job submission, polling, and result retrieval.
 
-Submits a single-node Slurm job on Perlmutter that runs `nemo_skills.inference.generate` inside a `podman-hpc` container against an external API endpoint (no GPU, no self-hosted model). The job reads an `input.jsonl` and a `prompt.yaml` from a mounted workspace and writes `output.jsonl` when done.
+## Skills
+
+| Skill | NeMo-Skills command | Purpose |
+|---|---|---|
+| [`perlmutter-nemo-generate`](./perlmutter-nemo-generate/) | `ns generate` | LLM inference over `input.jsonl` with a `prompt.yaml` |
+| [`perlmutter-nemo-eval`](./perlmutter-nemo-eval/) | `ns eval` / `ns robust_eval` | Benchmark evaluation; produces `metrics.json` |
 
 ## Prerequisites
 
-The local machine (the one running Claude Code) needs:
+The local machine running Claude Code needs:
 
 | Tool | Purpose |
 |---|---|
@@ -18,135 +23,81 @@ The local machine (the one running Claude Code) needs:
 
 A NERSC account with access to `pscratch` and permission to run `podman-hpc` on Perlmutter is also required.
 
-## Setup
+## Install
 
-**1. Initialise the bundled NeMo-Skills submodule**
-
-The Perlmutter-enabled NeMo-Skills fork is included as a git submodule tracking the
-[`perlmutter_podman-hpc`](https://github.com/ericchagnon15/nemo-skills-container-changes/tree/perlmutter_podman-hpc) branch.
-After cloning this repo, run:
+**1. Clone this repo**
 
 ```bash
+git clone https://github.com/FLlorente/perlmutter-ns-skill.git ~/perlmutter-ns-skills
+```
+
+**2. Symlink each skill into Claude Code's skills directory**
+
+Claude Code auto-loads skills placed under `~/.claude/skills/`. Symlink the subdirectory for each skill you want:
+
+```bash
+# Both skills (recommended)
+ln -s ~/perlmutter-ns-skills/perlmutter-nemo-generate \
+      ~/.claude/skills/perlmutter-nemo-generate
+
+ln -s ~/perlmutter-ns-skills/perlmutter-nemo-eval \
+      ~/.claude/skills/perlmutter-nemo-eval
+```
+
+You only need to clone once. Each skill is an independent subdirectory; install as many as you need.
+
+**3. Initialise the NeMo-Skills submodule**
+
+The Perlmutter-enabled NeMo-Skills fork is included as a git submodule. From the repo root:
+
+```bash
+cd ~/perlmutter-ns-skills
 git submodule update --init
 ```
 
-This checks out the fork into `Skills/`. Point `NEMO_SKILLS_REPO_DIR` at that directory (e.g. `$(pwd)/Skills`).
+This checks out the fork into `Skills/`. Set `NEMO_SKILLS_REPO_DIR` to that absolute path in your env file.
 
 > **Note:** The upstream fork may be a private repository. If `git submodule update --init`
 > fails with a 404 or authentication error, request access from the repository owner before
 > retrying.
 
-**2. Create your env file**
+**4. Create your env file**
+
+Each skill has its own `env_vars.example`. Copy it to a private file **outside version control** and fill in your credentials:
 
 ```bash
-cp env_vars.example my_env_vars
-# edit my_env_vars — fill in all replace-me values
+# For generate:
+cp ~/perlmutter-ns-skills/perlmutter-nemo-generate/env_vars.example \
+   ~/my_generate_env_vars
+
+# For eval:
+cp ~/perlmutter-ns-skills/perlmutter-nemo-eval/env_vars.example \
+   ~/my_eval_env_vars
 ```
 
-`my_env_vars` is gitignored. Never commit it. Required variables:
+Both skills share the same core variables (endpoint, SSH key, NERSC account, scratch paths, image tag). The eval skill adds `BENCHMARK`, `JOB_TYPE`, and a few optional tuning vars.
 
-| Variable | Description |
-|---|---|
-| `OPENAI_BASE_URL` | OpenAI-compatible endpoint, e.g. `https://api.example.com/v1` |
-| `OPENAI_API_KEY` or `NVIDIA_API_KEY` | At least one must be set |
-| `NERSC_USER` | Your NERSC username |
-| `SSH_LOGIN_IDENTITY` | Absolute path to your NERSC SSH private key |
-| `NERSC_ACCOUNT` | Slurm account to charge |
-| `NERSC_QOS` | Slurm QOS (`debug`, `regular`, `premium`, …) |
-| `NERSC_CONSTRAINT` | Node constraint (`gpu` or `cpu`) |
-| `NERSC_JOB_DIR` | Remote path for NeMo-Run experiment artifacts |
-| `REMOTE_WORKSPACE_ROOT` | Remote path for input/output files |
-| `PERLMUTTER_IMAGE_NAME` | `podman-hpc` image tag to use or build |
-| `NEMO_SKILLS_REPO_DIR` | Absolute local path to the Skills fork |
+## Invoking a skill
 
-See `env_vars.example` for the full list including optional overrides.
+Open a Claude Code session and paste the relevant starter prompt, substituting the bracketed values. See each skill's README for the full prompt template:
 
-**3. Prepare your inputs**
-
-`input.jsonl` — one JSON object per line. Each object may contain any fields; the prompt template references them by name:
-
-```json
-{"prompt": "Summarize the following paper abstract: ..."}
-{"prompt": "Translate this sentence to French: ..."}
-```
-
-`prompt.yaml` — a NeMo-Skills `PromptConfig`. The minimum is a `user` field with a Jinja2 template referencing your input fields:
-
-```yaml
-user: |-
-  {prompt}
-```
-
-For a system prompt add:
-
-```yaml
-system: "You are a helpful assistant."
-user: |-
-  {prompt}
-```
-
-## Invoking the skill
-
-Open a Claude Code session in this directory and paste the following, substituting the bracketed values:
-
-```
-Use the Perlmutter NeMo generation skill. My env vars file is /absolute/path/to/my_env_vars,
-and it already defines the endpoint, API keys, NERSC account details, SSH private-key path,
-NEMO_SKILLS_REPO_DIR for the Perlmutter-enabled NeMo-Skills checkout, remote workspace
-defaults, and the target image tag. My local input file is /absolute/path/to/input.jsonl,
-my local prompt file is /absolute/path/to/prompt.yaml, and my model is claude-haiku-4-5.
-Validate the required local tools and repo path, create or reuse the managed isolated local
-virtualenv for the modified repo, verify sshproxy access, verify Perlmutter access, verify
-the podman image, and if the image is missing build, test, and migrate the minimal image in
-my NERSC account. Do not install into my active local environment. Then render perlmutter.yaml
-and run.sh, upload the input and prompt files, submit the generation job, monitor it until
-completion, fetch the results locally, and report the local result path and any logs.
-Do not print secrets.
-```
-
-All four paths must be **absolute**. The model must appear in `config/supported_models.txt`.
-
-## Supported models
-
-```
-claude-haiku-4-5        claude-sonnet-4-5       claude-opus-4-5
-claude-haiku-4-5-high   claude-sonnet-4-5-high  claude-opus-4-5-high
-claude-sonnet-4-6       claude-opus-4-6         devstral-2
-mistral-large-3         nemotron-nano-3         nova-pro-1 / nova-micro-1
-llama-4-maverick        llama-4-scout           gpt-oss-120b / gpt-oss-20b
-... (see config/supported_models.txt for the full list)
-```
-
-## Output
-
-Results land in a timestamped run directory under `runs/` (gitignored):
-
-```
-runs/20260409-174753/
-  manifest.json        # run metadata and status
-  perlmutter.yaml      # rendered cluster config
-  run.sh               # rendered ns generate script
-  results/
-    output.jsonl       # one JSON object per input line
-    output.jsonl.done  # empty marker written on success
-    generation-logs/   # remote stdout/stderr logs
-    job-logs/          # Slurm sbatch and srun logs
-```
-
-Each line of `output.jsonl` contains the original input fields plus:
-
-| Field | Description |
-|---|---|
-| `generation` | Model response text |
-| `num_input_tokens` | Prompt token count |
-| `num_generated_tokens` | Response token count |
-| `finish_reason` | `stop`, `length`, etc. |
-| `generation_time` | Wall-clock seconds for this request |
+- [perlmutter-nemo-generate/README.md](./perlmutter-nemo-generate/README.md#invoking-the-skill)
+- [perlmutter-nemo-eval/README.md](./perlmutter-nemo-eval/README.md#invoking-the-skill)
 
 ## Container image
 
-On first run the skill checks for `PERLMUTTER_IMAGE_NAME` in your Perlmutter account. If missing it builds and migrates a minimal image using `templates/Containerfile.minimal.tmpl` — this takes several minutes but only happens once. Subsequent runs reuse the cached image.
+On first run each skill checks whether `PERLMUTTER_IMAGE_NAME` exists in your Perlmutter account. If missing, it builds and migrates a minimal image using `perlmutter-nemo-generate/templates/Containerfile.minimal.tmpl`. This takes a few minutes but only happens once; subsequent runs reuse the cached image. Both skills use the same image.
 
 ## Local virtualenv
 
-On first run the skill creates an isolated virtualenv under `~/.cache/perlmutter-nemo-generate/` and installs the Skills fork editable. This takes a few minutes (downloads nemo_skills dependencies) but is reused on subsequent runs as long as `pyproject.toml` and requirements files are unchanged.
+On first run the skill creates an isolated virtualenv under `~/.cache/perlmutter-nemo-generate/` (keyed by `NEMO_SKILLS_REPO_DIR`) and installs the NeMo-Skills fork editable. This is reused across both skills and across runs as long as `pyproject.toml` and requirements files are unchanged.
+
+## Keeping skills up to date
+
+```bash
+cd ~/perlmutter-ns-skills
+git pull
+git submodule update
+```
+
+The symlinks in `~/.claude/skills/` always point to the live working copy, so there is nothing else to update.

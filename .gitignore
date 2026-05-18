@@ -1,6 +1,21 @@
+# User env files (contain secrets)
 my_env_vars
+my_eval_env_vars
+**/my_*_env_vars
+
+# Run artifacts
 runs/
+**/.perlmutter-nemo-generate-runs/
+
+# Test inputs (user-specific, not part of the skill)
+inputs.jsonl
+prompt.yaml
+
+# Build/dev
 test_venv/
 .DS_Store
 __pycache__/
 *.pyc
+
+# Claude Code session data
+.claude/

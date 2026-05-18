@@ -1,1 +1,1 @@
-../../scripts/check_remote_access.sh
+../../perlmutter-nemo-generate/scripts/check_remote_access.sh

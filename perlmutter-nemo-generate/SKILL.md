@@ -14,31 +14,6 @@ Use this skill for one job shape only:
 
 Do not use this skill for `ns eval`, sidecars, self-hosted vLLM, or multi-component jobs.
 
-## Install
-
-Claude Code discovers skills placed under `~/.claude/skills/`. Clone this repo directly into that directory so the skill is auto-loaded:
-
-```bash
-git clone https://github.com/FLlorente/perlmutter-ns-skill.git ~/.claude/skills/perlmutter-nemo-generate
-```
-
-Then:
-
-1. Copy [env_vars.example](./env_vars.example) to a private absolute-path env file outside version control.
-2. Fill in the env file, especially `NEMO_SKILLS_REPO_DIR`, the private-key path in `SSH_LOGIN_IDENTITY`, NERSC account values, scratch paths, and image tag.
-3. Use the starter text in [user_prompt](./user_prompt) when invoking the skill.
-
-## Local prerequisites
-
-The local machine running Codex must already have:
-- `python3`
-- `ssh`
-- `scp`
-- `sshproxy`
-
-On first use, the skill creates or reuses an isolated local virtualenv and installs the modified NeMo-Skills repo there so it can run the correct `ns` CLI. It does not install or upgrade packages in the user's active Python environment.
-If `setuptools`, `wheel`, or repo dependencies are not already available locally, first use may require internet access to populate the managed virtualenv.
-
 ## Inputs
 
 The user must provide:
@@ -93,20 +68,6 @@ The image contract is simple:
 - If that tag already exists, the skill reuses it.
 - If that tag is missing, the skill builds the minimal podman-hpc image defined by [templates/Containerfile.minimal.tmpl](./templates/Containerfile.minimal.tmpl) and migrates it.
 - The user does not need to know a separate image "type"; the skill manages one image shape for this workflow.
-
-## Source of truth
-
-Resolve the workflow from the repo referenced by `NEMO_SKILLS_REPO_DIR`, not from memory:
-- `<repo_dir>/docs/basics/perlmutter.md`
-- `<repo_dir>/ns-tests/test_api_perlmutter.sh`
-- `<repo_dir>/ns-tests/cluster_configs/perlmutter.yaml`
-- `<repo_dir>/nemo_skills/pipeline/utils/cluster.py`
-
-## Initial prompt
-
-Use this starter prompt with the user:
-
-`Use the Perlmutter NeMo generation skill. My env vars file is <ABS_ENV_VARS>, and it already defines the endpoint, API keys, NERSC account details, SSH private-key path, NEMO_SKILLS_REPO_DIR for the Perlmutter-enabled NeMo-Skills checkout, remote workspace defaults, and the target image tag. My local input file is <ABS_INPUT_JSONL>, my local prompt file is <ABS_PROMPT_YAML>, and my model is <MODEL_NAME>. Validate the required local tools and repo path, create or reuse the managed isolated local virtualenv for the modified repo, verify sshproxy access, verify Perlmutter access, verify the podman image, and if the image is missing build, test, and migrate the minimal image in my NERSC account. Do not install into my active local environment. Then render perlmutter.yaml and run.sh, upload the input and prompt files, submit the generation job, monitor it until completion, fetch the results locally, and report the local result path and any logs. Do not print secrets.`
 
 ## Workflow
 
