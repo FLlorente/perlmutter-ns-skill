@@ -73,24 +73,15 @@ user: |-
 
 ## Invoking the skill
 
-Open a Claude Code session in this directory and paste the following, substituting the bracketed values:
+Open a Claude Code session and paste (see `user_prompt` for the copy-paste template):
 
 ```
-Use the Perlmutter NeMo generation skill. My env vars file is /absolute/path/to/my_env_vars,
-and it already defines the endpoint, API keys, NERSC account details, SSH private-key path,
-NEMO_SKILLS_REPO_DIR for the Perlmutter-enabled NeMo-Skills checkout, remote workspace
-defaults, and the target image tag. My local input file is /absolute/path/to/input.jsonl,
-my local prompt file is /absolute/path/to/prompt.yaml, and my model is claude-haiku-4-5.
-Validate the required local tools and repo path, create or reuse the managed isolated local
-virtualenv for the modified repo, verify sshproxy access, verify Perlmutter access, verify
-the podman image, and if the image is missing build, test, and migrate the minimal image in
-my NERSC account. Do not install into my active local environment. Then render perlmutter.yaml
-and run.sh, upload the input and prompt files, submit the generation job, monitor it until
-completion, fetch the results locally, and report the local result path and any logs.
-Do not print secrets.
+Use the Perlmutter NeMo generation skill. My env file is /abs/path/my_env_vars,
+my input file is /abs/path/input.jsonl, my prompt file is /abs/path/prompt.yaml,
+and my model is <MODEL_NAME>. Do not print secrets.
 ```
 
-All four paths must be **absolute**. The model must appear in `config/supported_models.txt`.
+All paths must be **absolute**. The model must appear in `config/supported_models.txt`.
 
 ## Supported models
 

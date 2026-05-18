@@ -46,21 +46,14 @@ For `robust_eval` only: an absolute local path to `prompt_set_config.yaml` is re
 
 ## Invoking the skill
 
-Open a Claude Code session and paste the following, substituting the bracketed values:
+Open a Claude Code session and paste (see `user_prompt` for the copy-paste template):
 
 ```
-Use the Perlmutter NeMo eval skill. My env vars file is /absolute/path/to/my_eval_env_vars,
-and it already defines the endpoint, API keys, NERSC account details, SSH private-key path,
-NEMO_SKILLS_REPO_DIR, remote workspace defaults, and the target image tag. My benchmark is
-<BENCHMARK>, my model is <MODEL_NAME>, and my job type is eval.
-Validate the required local tools and repo path, create or reuse the managed isolated local
-virtualenv, verify sshproxy access, verify Perlmutter access, verify the podman image (build
-it if missing), render perlmutter.yaml and run.sh, stage benchmark data and any required config
-files, submit the eval job, monitor it until completion, fetch the results locally, and report
-the local results path and any logs. Do not print secrets.
+Use the Perlmutter NeMo eval skill. My env file is /abs/path/my_eval_env_vars,
+my benchmark is gsm8k, and my model is <MODEL_NAME>. Do not print secrets.
 ```
 
-For `robust_eval`, add: `my job type is robust_eval and my local prompt_set_config.yaml is /absolute/path/to/prompt_set_config.yaml.`
+For `robust_eval`, add: `My job type is robust_eval and my prompt_set_config is /abs/path/prompt_set_config.yaml.`
 
 All paths must be **absolute**. The model must appear in `config/supported_models.txt`.
 
