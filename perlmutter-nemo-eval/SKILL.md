@@ -52,7 +52,7 @@ Supported models live in [config/supported_models.txt](./config/supported_models
 
 Require the same core variables as the generate skill, plus:
 
-- `BENCHMARK` — benchmark name passed to `ns prepare_data` and `ns eval` (e.g. `gsm8k`)
+- `BENCHMARK` — benchmark name passed to `ns eval` (e.g. `gsm8k`); also used to locate the pre-bundled data at `$NEMO_SKILLS_REPO_DIR/nemo_skills/dataset/$BENCHMARK/`
 
 Optional vars (with defaults):
 - `JOB_TYPE` default `eval` — `eval` or `robust_eval`
@@ -115,7 +115,7 @@ Same as the generate skill — resolve from `NEMO_SKILLS_REPO_DIR`:
    - Run [scripts/prepare_run.sh](./scripts/prepare_run.sh) with `--benchmark`, `--model`, and optionally `--job-type`, `--num-samples`, `--max-concurrent-requests`, `--prompt-set-config`.
    - This renders:
      - `perlmutter.yaml`
-     - `run.sh` (calls `ns prepare_data` then `ns eval` or `ns robust_eval`)
+     - `run.sh` (calls `ns eval` or `ns robust_eval`)
      - `manifest.json`
 
 7. Stage config files.
@@ -128,8 +128,8 @@ Same as the generate skill — resolve from `NEMO_SKILLS_REPO_DIR`:
 
 9. Poll until completion.
    - Run [scripts/check_status.sh](./scripts/check_status.sh) with `--wait`.
-   - Primary success signal: remote `eval.done` file (written by `run.sh` on completion).
-   - Fallback: if `eval.done` is absent but `metrics.json` is found, treat as complete and warn.
+   - Primary success signal: `metrics.json` written by the `summarize_results` Slurm job (second of two jobs submitted by `ns eval`).
+   - Fallback: if that exact path is absent but `metrics.json` is found anywhere under `remote_output_dir` (maxdepth 4), treat as complete and warn.
 
 10. Fetch outputs.
     - Run [scripts/fetch_results.sh](./scripts/fetch_results.sh).
@@ -143,7 +143,7 @@ Same as the generate skill — resolve from `NEMO_SKILLS_REPO_DIR`:
 - Always mount the run-specific remote directory to `/workspace`.
 - The `run.sh` template uses `cd /tmp` before invoking `ns eval`/`ns robust_eval`. Do not change this — same CWD constraint as the generate skill applies.
 - Preflight checks are mandatory on every run. Do not treat them as optional.
-- `NEMO_SKILLS_DATA_DIR` defaults to `/workspace/ns-data`, which maps to `$REMOTE_RUN_DIR/ns-data` inside the container. Benchmark data is downloaded fresh per run (idempotent because `ns prepare_data` skips existing files).
+- `NEMO_SKILLS_DATA_DIR` defaults to `/workspace/ns-data`, which maps to `$REMOTE_RUN_DIR/ns-data` inside the container. Benchmark data (pre-bundled `*.jsonl` files from the local `NEMO_SKILLS_REPO_DIR/nemo_skills/dataset/` tree) is staged to the remote workspace via SCP during `stage_inputs.sh`, before job submission.
 
 ## Final response
 

@@ -9,8 +9,8 @@ usage() {
   cat <<'EOF'
 Usage: check_status.sh --manifest <absolute-path> [--wait]
 
-Poll Slurm for the run expname, fall back to sacct, and only report success when eval.done exists.
-Fallback: if eval.done is absent but metrics.json is found under remote_output_dir, treat as complete.
+Poll Slurm for the run expname, fall back to sacct, and only report success when metrics.json exists.
+Fallback: if metrics.json is absent but found anywhere under remote_output_dir (maxdepth 4), treat as complete.
 With --wait, exits with failure if the job does not complete within 2x DEFAULT_TIMEOUT.
 EOF
 }

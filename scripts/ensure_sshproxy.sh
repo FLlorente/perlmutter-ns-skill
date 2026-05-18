@@ -41,7 +41,7 @@ require_env_vars NERSC_USER SSH_LOGIN_IDENTITY
 ensure_absolute_path "${SSH_LOGIN_IDENTITY}"
 ensure_absolute_path "${SSH_IDENTITY}"
 require_parent_dir "${SSH_IDENTITY}"
-require_file "${SSH_LOGIN_IDENTITY}"
+require_parent_dir "${SSH_LOGIN_IDENTITY}"
 
 if [[ -f "${SSH_LOGIN_IDENTITY}" ]] && ssh $(ssh_options) "${NERSC_USER}@${NERSC_HOST}" "echo connected" >/dev/null 2>&1; then
   note "Existing SSH access to ${NERSC_HOST} is already valid"

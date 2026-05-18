@@ -8,12 +8,6 @@ source "{{ENV_FILE}}"
 
 cd /tmp
 
-"{{NS_BIN}}" prepare_data \
-  --cluster=perlmutter \
-  --config_dir="$SCRIPT_DIR" \
-  "{{BENCHMARK}}" \
-  --data_dir="{{NEMO_SKILLS_DATA_DIR}}"
-
 if [[ "{{JOB_TYPE}}" == "robust_eval" ]]; then
   "{{NS_BIN}}" robust_eval \
     --cluster=perlmutter \
@@ -23,12 +17,12 @@ if [[ "{{JOB_TYPE}}" == "robust_eval" ]]; then
     --server_address="$OPENAI_BASE_URL" \
     --output_dir="{{MOUNT_OUTPUT_DIR}}" \
     --expname="{{EXPNAME}}" \
-    ++benchmarks="{{BENCHMARK}}:{{NUM_SAMPLES}}" \
+    --benchmarks="{{BENCHMARK}}:{{NUM_SAMPLES}}" \
+    --prompt_set_config=/workspace/prompt_set_config.yaml \
     ++num_jobs=1 \
     ++skip_filled=True \
     ++max_concurrent_requests="{{MAX_CONCURRENT_REQUESTS}}" \
-    ++parse_reasoning=False \
-    prompt_set_config=/workspace/prompt_set_config.yaml
+    ++parse_reasoning=False
 else
   "{{NS_BIN}}" eval \
     --cluster=perlmutter \
@@ -38,10 +32,9 @@ else
     --server_address="$OPENAI_BASE_URL" \
     --output_dir="{{MOUNT_OUTPUT_DIR}}" \
     --expname="{{EXPNAME}}" \
-    ++benchmarks="{{BENCHMARK}}:{{NUM_SAMPLES}}" \
+    --benchmarks="{{BENCHMARK}}:{{NUM_SAMPLES}}" \
     ++skip_filled=True \
     ++max_concurrent_requests="{{MAX_CONCURRENT_REQUESTS}}" \
     ++parse_reasoning=False
 fi
 
-touch "{{MOUNT_OUTPUT_DIR}}/eval.done"

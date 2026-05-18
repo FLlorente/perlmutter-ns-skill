@@ -126,13 +126,13 @@ cluster_config_path="${run_dir}/perlmutter.yaml"
 run_script_path="${run_dir}/run.sh"
 manifest_path="${run_dir}/manifest.json"
 remote_output_dir="${REMOTE_RUN_DIR}/eval/${run_id}"
-remote_done_file="${remote_output_dir}/eval.done"
+remote_done_file="${remote_output_dir}/eval-results/${benchmark}/metrics.json"
 
 render_template "$(bundle_root)/templates/perlmutter.yaml.tmpl" "${cluster_config_path}"
 render_template "$(bundle_root)/templates/run.sh.tmpl" "${run_script_path}"
 chmod +x "${run_script_path}"
 
-prompt_set_config_field="null"
+prompt_set_config_field="None"
 if [[ -n "${prompt_set_config}" ]]; then
   prompt_set_config_field="\"${prompt_set_config}\""
 fi

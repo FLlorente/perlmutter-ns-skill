@@ -38,8 +38,9 @@ export NUM_SAMPLES=0
 # Maximum parallel API requests during evaluation
 export MAX_CONCURRENT_REQUESTS=32
 
-# Container-side path where ns prepare_data downloads benchmark data.
-# Maps to $REMOTE_RUN_DIR/ns-data inside the container (/workspace/ns-data).
+# Container-side path where benchmark data is mounted.
+# Pre-bundled *.jsonl files from NEMO_SKILLS_REPO_DIR/nemo_skills/dataset/$BENCHMARK/ are
+# staged to the remote workspace via SCP before submission (no ns prepare_data Slurm job).
 export NEMO_SKILLS_DATA_DIR=/workspace/ns-data
 
 # For robust_eval only: absolute local path to the prompt set config

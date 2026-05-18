@@ -308,13 +308,25 @@ PY
 }
 
 ssh_options() {
-  printf '%s\n' "-o" "BatchMode=yes" "-o" "StrictHostKeyChecking=accept-new" "-i" "${SSH_LOGIN_IDENTITY}"
+  if [[ -f "${SSH_LOGIN_IDENTITY}" ]]; then
+    printf '%s\n' "-o" "BatchMode=yes" "-o" "StrictHostKeyChecking=accept-new" "-i" "${SSH_LOGIN_IDENTITY}"
+  else
+    printf '%s\n' "-o" "BatchMode=yes" "-o" "StrictHostKeyChecking=accept-new"
+  fi
+}
+
+# Require that SSH_LOGIN_IDENTITY is either a file on disk or already loaded in
+# the ssh-agent (identified by a matching comment). Dies if neither is true.
+require_ssh_identity() {
+  [[ -f "${SSH_LOGIN_IDENTITY}" ]] && return 0
+  ssh-add -l 2>/dev/null | grep -qF "$(basename "${SSH_LOGIN_IDENTITY}")" && return 0
+  die "SSH identity ${SSH_LOGIN_IDENTITY} is neither a file on disk nor loaded in the ssh-agent"
 }
 
 ssh_cmd() {
   local remote_cmd="$1"
   require_env_vars NERSC_USER NERSC_HOST SSH_LOGIN_IDENTITY
-  require_file "${SSH_LOGIN_IDENTITY}"
+  require_ssh_identity
   ssh $(ssh_options) "${NERSC_USER}@${NERSC_HOST}" "${remote_cmd}"
 }
 
@@ -337,7 +349,7 @@ scp_to() {
   local source_path="$1"
   local dest_path="$2"
   require_env_vars NERSC_USER NERSC_HOST SSH_LOGIN_IDENTITY
-  require_file "${SSH_LOGIN_IDENTITY}"
+  require_ssh_identity
   scp -p $(ssh_options) "${source_path}" "${NERSC_USER}@${NERSC_HOST}:${dest_path}"
 }
 
@@ -345,7 +357,7 @@ scp_from() {
   local source_path="$1"
   local dest_path="$2"
   require_env_vars NERSC_USER NERSC_HOST SSH_LOGIN_IDENTITY
-  require_file "${SSH_LOGIN_IDENTITY}"
+  require_ssh_identity
   scp -p $(ssh_options) "${NERSC_USER}@${NERSC_HOST}:${source_path}" "${dest_path}"
 }
 
